@@ -1,9 +1,14 @@
 name: Upload Video from Pixabay to YouTube
 
 on:
+  schedule:
+    # This will run the workflow at 8 AM, 12 PM, and 6 PM UTC
+    - cron: "0 8 * * *"   # 8:00 AM UTC (Morning)
+    - cron: "0 12 * * *"  # 12:00 PM UTC (Lunchtime)
+    - cron: "0 18 * * *"  # 6:00 PM UTC (Evening)
   push:
     branches:
-      - main  # This will trigger the workflow when you push to the 'main' branch
+      - main  # Optional: Trigger on push to 'main' branch as well (if you want)
 
 jobs:
   upload_video:
