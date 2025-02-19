@@ -9,6 +9,7 @@ on:
   push:
     branches:
       - main  # Optional: Trigger on push to 'main' branch as well (if you want)
+  workflow_dispatch:  # Allow manual trigger via "Run workflow" button
 
 jobs:
   upload_video:
