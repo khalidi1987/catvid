@@ -1,0 +1,32 @@
+name: Download & Upload YouTube Video
+
+on:
+  schedule:
+    - cron: '0 12 * * *'  # Läuft jeden Tag um 12:00 Uhr (UTC)
+  workflow_dispatch:  # Ermöglicht manuellen Start
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v3
+
+      - name: Python installieren
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.x'
+
+      - name: Abhängigkeiten installieren
+        run: pip install --upgrade google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client requests
+
+      - name: Katzenvideo herunterladen
+        run: python download_video.py
+
+      - name: Video auf YouTube hochladen
+        env:
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          CLIENT_SECRET_KEY: ${{ secrets.CLIENT_SECRET_KEY }}
+          REFRESH_TOKEN: ${{ secrets.REFRESH_TOKEN }}
+        run: python upload.py
