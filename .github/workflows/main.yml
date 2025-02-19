@@ -1,32 +1,37 @@
-name: Download & Upload YouTube Video
+name: Upload Video from Pixabay to YouTube
 
 on:
-  schedule:
-    - cron: '0 12 * * *'  # Läuft jeden Tag um 12:00 Uhr (UTC)
-  workflow_dispatch:  # Ermöglicht manuellen Start
+  push:
+    branches:
+      - main  # This will trigger the workflow when you push to the 'main' branch
 
 jobs:
-  upload:
-    runs-on: ubuntu-latest
+  upload_video:
+    runs-on: ubuntu-latest  # Use the latest version of Ubuntu for the environment
 
     steps:
-      - name: Repository auschecken
-        uses: actions/checkout@v3
+    - name: Checkout the repository
+      uses: actions/checkout@v2
 
-      - name: Python installieren
-        uses: actions/setup-python@v3
-        with:
-          python-version: '3.x'
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'  # You can specify the version you prefer
 
-      - name: Abhängigkeiten installieren
-        run: pip install --upgrade google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client requests
+    - name: Install dependencies
+      run: |
+        pip install --upgrade pip
+        pip install requests google-api-python-client google-auth google-auth-oauthlib google-auth-httplib2
 
-      - name: Katzenvideo herunterladen
-        run: python download_video.py
+    - name: Run upload script
+      run: |
+        # Download the video from Pixabay and upload it to YouTube
+        python upload_from_url_to_youtube.py
 
-      - name: Video auf YouTube hochladen
-        env:
-          CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
-          CLIENT_SECRET_KEY: ${{ secrets.CLIENT_SECRET_KEY }}
-          REFRESH_TOKEN: ${{ secrets.REFRESH_TOKEN }}
-        run: python upload.py
+    - name: Commit the changes (optional)
+      run: |
+        git config --global user.name 'Your GitHub Username'
+        git config --global user.email 'your-email@example.com'
+        git add .
+        git commit -m "Automated video upload from Pixabay to YouTube"
+        git push
