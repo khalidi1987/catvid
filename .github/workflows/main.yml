@@ -2,18 +2,14 @@ name: Upload Video from Pixabay to YouTube
 
 on:
   schedule:
-    # This will run the workflow at 8 AM, 12 PM, and 6 PM UTC
     - cron: "0 8 * * *"   # 8:00 AM UTC (Morning)
     - cron: "0 12 * * *"  # 12:00 PM UTC (Lunchtime)
     - cron: "0 18 * * *"  # 6:00 PM UTC (Evening)
-  push:
-    branches:
-      - main  # Optional: Trigger on push to 'main' branch as well (if you want)
   workflow_dispatch:  # Allow manual trigger via "Run workflow" button
 
 jobs:
   upload_video:
-    runs-on: ubuntu-latest  # Use the latest version of Ubuntu for the environment
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout the repository
@@ -22,7 +18,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: '3.8'  # You can specify the version you prefer
+        python-version: '3.8'
 
     - name: Install dependencies
       run: |
@@ -31,19 +27,14 @@ jobs:
 
     - name: Run upload script
       run: |
-        # Download the video from Pixabay and upload it to YouTube
         python upload_from_url_to_youtube.py
 
     - name: Log upload success
       run: |
         echo "Video uploaded successfully at $(date)" >> upload_log.txt
-        # Check if there are changes before committing
         git config --global user.name 'Your GitHub Username'
         git config --global user.email 'your-email@example.com'
         git add upload_log.txt
-        if ! git diff --cached --quiet; then
-          git commit -m "Log video upload timestamp"
-          git push
-        else
-          echo "No changes to commit"
-        fi
+        # Authenticate using the GitHub token for pushing changes
+        git commit -m "Log video upload timestamp"
+        git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
