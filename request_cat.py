@@ -1,10 +1,12 @@
+import requests
 from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload
+from googleapiclient.http import MediaIoBaseUpload
 from google.oauth2.credentials import Credentials
+import io
 import os
 from google.auth.transport.requests import Request
 
-# Authentifizierung für YouTube API
+# Authenticate with the YouTube API using the refresh token
 def get_authenticated_service():
     creds = Credentials.from_authorized_user_info({
         "client_id": os.getenv("CLIENT_ID"),
@@ -12,38 +14,51 @@ def get_authenticated_service():
         "refresh_token": os.getenv("REFRESH_TOKEN"),
         "token": ""
     })
-    
-    # Refresh the token if necessary
+
     if creds and creds.expired and creds.refresh_token:
         creds.refresh(Request())
-
+    
     return build("youtube", "v3", credentials=creds)
 
-# Video auf YouTube hochladen
-def upload_video(file_path, title="Süße Katze", description="Ein süßes Katzenvideo!", tags=["Katze", "süß"], privacy_status="public"):
+# Upload the video to YouTube
+def upload_video_to_youtube(video_stream, title="Süße Katze", description="Ein süßes Katzenvideo!", tags=["Katze", "süß"], privacy_status="public"):
     youtube = get_authenticated_service()
-    
-    try:
-        request = youtube.videos().insert(
-            part="snippet,status",
-            body={
-                "snippet": {
-                    "title": title,
-                    "description": description,
-                    "tags": tags,
-                    "categoryId": "15"
-                },
-                "status": {
-                    "privacyStatus": privacy_status
-                }
-            },
-            media_body=MediaFileUpload(file_path, chunksize=-1, resumable=True)
-        )
-        response = request.execute()
-        print(f"Video hochgeladen: https://www.youtube.com/watch?v={response['id']}")
-    
-    except Exception as e:
-        print(f"Fehler beim Hochladen des Videos: {e}")
 
-# Beispielaufruf der Funktion
-upload_video("katzenvideo.mp4")
+    media = MediaIoBaseUpload(video_stream, mimetype="video/mp4", resumable=True)
+
+    request = youtube.videos().insert(
+        part="snippet,status",
+        body={
+            "snippet": {
+                "Sweet KITTY portrait": title,
+                "enjoy": description,
+                "cat": tags,
+                "categoryId": "15"  # Pets & Animals category
+            },
+            "status": {
+                "privacyStatus": privacy_status
+            }
+        },
+        media_body=media
+    )
+    
+    response = request.execute()
+    print(f"Video uploaded successfully: https://www.youtube.com/watch?v={response['id']}")
+
+# Stream video from Pixabay and upload to YouTube
+def stream_and_upload_video_from_url(url):
+    # Send a GET request to the video URL
+    response = requests.get(url, stream=True)
+
+    if response.status_code == 200:
+        print("Streaming video...")
+        video_stream = io.BytesIO(response.content)  # Convert the response into a byte stream
+        upload_video_to_youtube(video_stream)
+    else:
+        print(f"Failed to fetch the video. HTTP Status Code: {response.status_code}")
+
+# The video URL from Pixabay
+video_url = 'https://cdn.pixabay.com/download/video/167029/cat-head-domestic-cat-portrait-167029.mp4'
+
+# Run the function to stream and upload
+stream_and_upload_video_from_url(video_url)
