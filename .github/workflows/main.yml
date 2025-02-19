@@ -34,10 +34,16 @@ jobs:
         # Download the video from Pixabay and upload it to YouTube
         python upload_from_url_to_youtube.py
 
-    - name: Commit the changes (optional)
+    - name: Log upload success
       run: |
+        echo "Video uploaded successfully at $(date)" >> upload_log.txt
+        # Check if there are changes before committing
         git config --global user.name 'Your GitHub Username'
         git config --global user.email 'your-email@example.com'
-        git add .
-        git commit -m "Automated video upload from Pixabay to YouTube"
-        git push
+        git add upload_log.txt
+        if ! git diff --cached --quiet; then
+          git commit -m "Log video upload timestamp"
+          git push
+        else
+          echo "No changes to commit"
+        fi
