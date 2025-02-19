@@ -1,6 +1,9 @@
 name: Upload Video from Pixabay to YouTube
 
 on:
+  push:
+    branches:
+      - main  # Run automatically when changes are pushed to 'main'
   schedule:
     - cron: "0 8 * * *"   # 8:00 AM UTC (Morning)
     - cron: "0 12 * * *"  # 12:00 PM UTC (Lunchtime)
@@ -15,7 +18,7 @@ jobs:
     - name: Checkout the repository
       uses: actions/checkout@v3
       with:
-        persist-credentials: false  # Disable default GitHub token (GITHUB_TOKEN)
+        persist-credentials: false  # Prevents using the default GitHub token
 
     - name: Set up Python
       uses: actions/setup-python@v3
